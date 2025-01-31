@@ -6,11 +6,11 @@ function App() {
         <>
             <Theme
                 appearance="light"
-                accentColor="indigo"
+                accentColor="purple"
                 grayColor="gray"
                 scaling="100%"
                 panelBackground="solid"
-                style={{ backgroundColor: "var(--indigo-1)" }}
+                style={{ backgroundColor: "var(--purple-1)" }}
             >
                 <Outlet />
             </Theme>

@@ -27,4 +27,5 @@ export const dropzoneText = style({
     fontSize: "var(--font-size-3)",
     fontFamily: "var(--font-family)",
     textAlign: "center",
+    userSelect: "none",
 });
