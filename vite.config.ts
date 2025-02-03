@@ -14,9 +14,4 @@ export default defineConfig({
     optimizeDeps: {
         include: ["react-pdf"],
     },
-    build: {
-        commonjsOptions: {
-            include: [/react-pdf/, /pdfjs-dist/],
-        },
-    },
 });
