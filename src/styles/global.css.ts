@@ -1,3 +1,4 @@
+import { lineHeight } from "@/styles/tokens.css";
 import { globalStyle } from "@vanilla-extract/css";
 
 globalStyle(":root", {
@@ -9,6 +10,10 @@ globalStyle(":root", {
     textRendering: "optimizeLegibility",
     WebkitFontSmoothing: "antialiased",
     MozOsxFontSmoothing: "grayscale",
+
+    vars: {
+        "--line-height": lineHeight.default,
+    },
 });
 
 globalStyle("a", {

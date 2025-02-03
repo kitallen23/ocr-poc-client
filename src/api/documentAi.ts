@@ -1,18 +1,15 @@
 import { useMutation } from "@tanstack/react-query";
-import ky from "ky";
 import {
     ProcessedDocumentResponse,
     AmazonProcessorType,
     GoogleProcessorType,
 } from "@/types/document.types";
 import { fileToBase64 } from "@/utils/fileHelpers";
-
-const api = ky.create({
-    prefixUrl: "http://localhost:3000/api",
-    timeout: 60000,
-});
+import { usePassword } from "@/contexts/PasswordContext";
 
 export const useGoogleProcessDocument = () => {
+    const { api } = usePassword();
+
     return useMutation<
         ProcessedDocumentResponse,
         Error,
@@ -39,6 +36,8 @@ export const useGoogleProcessDocument = () => {
 };
 
 export const useAmazonProcessDocument = () => {
+    const { api } = usePassword();
+
     return useMutation<
         ProcessedDocumentResponse,
         Error,
