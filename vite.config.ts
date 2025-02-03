@@ -11,4 +11,12 @@ export default defineConfig({
             "@": fileURLToPath(new URL("./src", import.meta.url)),
         },
     },
+    optimizeDeps: {
+        include: ["react-pdf"],
+    },
+    build: {
+        commonjsOptions: {
+            include: [/react-pdf/, /pdfjs-dist/],
+        },
+    },
 });

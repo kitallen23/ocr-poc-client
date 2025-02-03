@@ -11,10 +11,10 @@ import {
 } from "@radix-ui/themes";
 import { nanoid } from "nanoid";
 import { HTTPError } from "ky";
-import { ExclamationTriangleIcon, LapTimerIcon } from "@radix-ui/react-icons";
+import { LapTimerIcon, ResetIcon } from "@radix-ui/react-icons";
 
 import { useGoogleProcessDocument } from "@/api/documentAi";
-import SingleImageForm from "@/components/SingleImageForm/SingleImageForm";
+import SingleFileForm from "@/components/SingleFileForm/SingleFileForm";
 import { darkCard } from "@/styles/components/dark-card.css";
 import EntityTable from "@/components/EntityTable";
 import {
@@ -22,6 +22,8 @@ import {
     ProcessedDocumentResponse,
 } from "@/types/document.types";
 import { usePassword } from "@/contexts/PasswordContext";
+import { PDFPreview } from "@/components/PDFPreview/PDFPreview";
+import ErrorMessage from "@/components/ErrorMessage/ErrorMessage";
 
 const PROCESSOR_TYPE_OPTIONS = {
     "us-drivers-license-parser": "US Drivers License",
@@ -30,7 +32,7 @@ const PROCESSOR_TYPE_OPTIONS = {
 };
 
 function GoogleDocumentProcessor() {
-    const [selectedImage, setSelectedImage] = useState<File | null>(null);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [ocrResult, setOcrResult] =
         useState<ProcessedDocumentResponse | null>(null);
     const [processorType, setProcessorType] = useState<GoogleProcessorType>(
@@ -40,14 +42,15 @@ function GoogleDocumentProcessor() {
     const formId = useMemo(() => nanoid(4), []);
 
     const { mutate, isPending, reset } = useGoogleProcessDocument();
-    const { hasError: hasPasswordError, setHasError: setHasPasswordError } =
-        usePassword();
+    const { setHasError: setHasPasswordError } = usePassword();
+    const [errorText, setErrorText] = useState("");
 
     const handleSubmit = async () => {
         setHasPasswordError(false);
-        if (selectedImage && !isPending) {
+        setErrorText("");
+        if (selectedFile && !isPending) {
             mutate(
-                { file: selectedImage, processorType },
+                { file: selectedFile, processorType },
                 {
                     onSuccess: data => {
                         console.info(`data: `, data);
@@ -81,14 +84,25 @@ function GoogleDocumentProcessor() {
                             fields: sortedFields,
                         });
                     },
-                    onError: err => {
+                    onError: async err => {
                         if (err instanceof HTTPError) {
                             const statusCode = err.response.status;
                             console.error(
                                 `Error ${statusCode} processing document:`,
                                 err
                             );
-                            setHasPasswordError(true);
+                            if (statusCode === 401) {
+                                setHasPasswordError(true);
+                                return;
+                            }
+                            try {
+                                const errorData = await err.response.json();
+                                const message =
+                                    errorData.details || errorData.error || "";
+                                if (message) {
+                                    setErrorText(message);
+                                }
+                            } catch {} //eslint-disable-line no-empty
                         } else {
                             console.error(`Error processing document:`, err);
                         }
@@ -98,8 +112,8 @@ function GoogleDocumentProcessor() {
         }
     };
 
-    const handleSelectedImageChange = (value: File | null) => {
-        setSelectedImage(value);
+    const handleSelectedFileChange = (value: File | null) => {
+        setSelectedFile(value);
         setOcrResult(null);
         reset();
     };
@@ -109,6 +123,13 @@ function GoogleDocumentProcessor() {
             setOcrResult(null);
             reset();
         }
+    };
+
+    const handleReset = () => {
+        setSelectedFile(null);
+        setHasPasswordError(false);
+        setErrorText("");
+        setOcrResult(null);
     };
 
     const isGenericEntities = useMemo(
@@ -150,38 +171,35 @@ function GoogleDocumentProcessor() {
             </Select.Root>
 
             <Card>
-                <SingleImageForm
+                <SingleFileForm
                     id={formId}
-                    selectedImage={selectedImage}
-                    setSelectedImage={handleSelectedImageChange}
+                    selectedFile={selectedFile}
+                    setSelectedFile={handleSelectedFileChange}
                     onSubmit={handleSubmit}
                 />
             </Card>
-            {selectedImage && (
-                <Card style={{ padding: 0 }}>
-                    <img
-                        src={URL.createObjectURL(selectedImage)}
-                        alt="Preview"
-                        style={{
-                            maxWidth: "100%",
-                            height: "auto",
-                            display: "block",
-                        }}
-                    />
-                </Card>
-            )}
-            <Button disabled={!selectedImage} loading={isPending} form={formId}>
+            {selectedFile ? (
+                selectedFile.type === "application/pdf" ? (
+                    <PDFPreview file={selectedFile} />
+                ) : (
+                    <Card style={{ padding: 0 }}>
+                        <img
+                            src={URL.createObjectURL(selectedFile)}
+                            alt="Preview"
+                            style={{
+                                maxWidth: "100%",
+                                height: "auto",
+                                display: "block",
+                            }}
+                        />
+                    </Card>
+                )
+            ) : null}
+            <Button disabled={!selectedFile} loading={isPending} form={formId}>
                 Submit
             </Button>
-            {hasPasswordError ? (
-                <Text color="red" align="center" as="div">
-                    <ExclamationTriangleIcon
-                        style={{ marginBottom: "2px", verticalAlign: "middle" }}
-                    />{" "}
-                    Password is missing or incorrect. Please enter the correct
-                    password.
-                </Text>
-            ) : null}
+
+            <ErrorMessage errorText={errorText} />
 
             {ocrResult?.fields && !isPending ? (
                 <Grid columns="1" gap="3" mt="4">
@@ -238,6 +256,14 @@ function GoogleDocumentProcessor() {
                         </>
                     ) : null}
                 </Grid>
+            ) : null}
+
+            {ocrResult ? (
+                <Flex justify="end">
+                    <Button variant="soft" onClick={handleReset}>
+                        <ResetIcon /> Start over
+                    </Button>
+                </Flex>
             ) : null}
         </>
     );

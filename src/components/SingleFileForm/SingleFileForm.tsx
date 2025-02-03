@@ -4,27 +4,28 @@ import { Form } from "radix-ui";
 
 import { dropzone, dropzoneText } from "./dropzone.css.ts";
 
-interface SingleImageFormProps {
+interface SingleFileFormProps {
     id: string;
-    selectedImage: File | null;
-    setSelectedImage: (image: File | null) => void;
+    selectedFile: File | null;
+    setSelectedFile: (file: File | null) => void;
     onSubmit: () => void;
 }
 
-function SingleImageForm({
+function SingleFileForm({
     id,
-    selectedImage,
-    setSelectedImage,
+    selectedFile,
+    setSelectedFile,
     onSubmit,
-}: SingleImageFormProps) {
+}: SingleFileFormProps) {
     const onDrop = (acceptedFiles: File[]) => {
-        setSelectedImage(acceptedFiles[0]);
+        setSelectedFile(acceptedFiles[0]);
     };
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
         accept: {
             "image/*": [".jpeg", ".jpg", ".png"],
+            "application/pdf": [".pdf"],
         },
         multiple: false,
     });
@@ -37,7 +38,7 @@ function SingleImageForm({
     return (
         <Form.Root id={id} onSubmit={handleSubmit}>
             <Grid columns="1" gap="3">
-                <Form.Field name="image">
+                <Form.Field name="file">
                     <div
                         {...getRootProps()}
                         className={dropzone}
@@ -46,20 +47,20 @@ function SingleImageForm({
                         <Form.Control asChild>
                             <input {...getInputProps()} />
                         </Form.Control>
-                        {selectedImage && selectedImage.name ? (
-                            <Text>File chosen: {selectedImage.name}</Text>
+                        {selectedFile && selectedFile.name ? (
+                            <Text>File chosen: {selectedFile.name}</Text>
                         ) : isDragActive ? (
                             <Text className={dropzoneText}>
-                                Drop the image here
+                                Drop the file here
                             </Text>
                         ) : (
                             <Text className={dropzoneText}>
-                                Drag and drop an image, or click to select
+                                Drag and drop a file, or click to select
                             </Text>
                         )}
                     </div>
                     <Form.Message match="valueMissing">
-                        Please select an image
+                        Please select a file
                     </Form.Message>
                 </Form.Field>
             </Grid>
@@ -67,4 +68,4 @@ function SingleImageForm({
     );
 }
 
-export default SingleImageForm;
+export default SingleFileForm;

@@ -42,7 +42,15 @@ const EntityTable = ({
                         }}
                     >
                         <Table.RowHeaderCell>{label}</Table.RowHeaderCell>
-                        <Table.Cell>{value}</Table.Cell>
+                        <Table.Cell
+                            style={{
+                                wordWrap: "break-word",
+                                wordBreak: "break-word",
+                                overflowWrap: "break-word",
+                            }}
+                        >
+                            {value}
+                        </Table.Cell>
                         <Table.Cell>{(confidence ?? 0).toFixed(2)}</Table.Cell>
                     </Table.Row>
                 ))}
