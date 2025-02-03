@@ -14,6 +14,8 @@ yarn install
 yarn dev
 ```
 
+And then visit `http://localhost:5173`.
+
 ## How to deploy
 
 Deployments are manually triggered via the GitHub action.
